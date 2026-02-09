@@ -22,7 +22,9 @@ export default function CartIndex({ itemsByMerchant, total }: Props) {
             <Head title="Shopping Cart" />
 
             <div className="container mx-auto px-4 py-8">
-                <h1 className="mb-8 text-3xl font-bold">Shopping Cart</h1>
+                <h1 className="mb-8 text-3xl font-bold text-black">
+                    Shopping Cart
+                </h1>
 
                 {isEmpty ? (
                     <div className="py-12 text-center">
@@ -49,7 +51,7 @@ export default function CartIndex({ itemsByMerchant, total }: Props) {
 
                         <div className="lg:col-span-1">
                             <div className="sticky top-4 rounded-lg bg-white p-6 shadow-sm">
-                                <h2 className="mb-4 text-xl font-bold">
+                                <h2 className="mb-4 text-xl font-bold text-black">
                                     Order Summary
                                 </h2>
 
@@ -58,20 +60,28 @@ export default function CartIndex({ itemsByMerchant, total }: Props) {
                                         <span className="text-gray-600">
                                             Subtotal
                                         </span>
-                                        <span>₦{total.toLocaleString()}</span>
+                                        <span className="text-black">
+                                            ₦{total.toLocaleString()}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">
                                             Shipping
                                         </span>
-                                        <span>Calculated at checkout</span>
+                                        <span className="text-black">
+                                            Calculated at checkout
+                                        </span>
                                     </div>
                                 </div>
 
                                 <div className="mb-6 border-t pt-4">
                                     <div className="flex justify-between text-xl font-bold">
-                                        <span>Total</span>
-                                        <span>₦{total.toLocaleString()}</span>
+                                        <span className="text-black">
+                                            Total
+                                        </span>
+                                        <span className="text-black">
+                                            ₦{total.toLocaleString()}
+                                        </span>
                                     </div>
                                 </div>
 

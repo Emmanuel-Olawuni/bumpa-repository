@@ -25,15 +25,17 @@ export default function AddToCartButton({ productId, stock }: Props) {
                 <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-2 hover:bg-gray-100"
+                    className="px-3 py-2 text-black"
                 >
                     -
                 </button>
-                <span className="border-x px-4 py-2">{quantity}</span>
+                <span className="border-x px-4 py-2 text-black">
+                    {quantity}
+                </span>
                 <button
                     type="button"
                     onClick={() => setQuantity(Math.min(stock, quantity + 1))}
-                    className="px-3 py-2 hover:bg-gray-100"
+                    className="px-3 py-2 text-black"
                 >
                     +
                 </button>

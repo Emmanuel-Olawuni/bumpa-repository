@@ -21,7 +21,6 @@ export default function ProductShow({ product }: Props) {
                 </Link>
 
                 <div className="grid gap-8 md:grid-cols-2">
-                    {/* Product Image */}
                     <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
                         <img
                             src={product.image}
@@ -30,7 +29,6 @@ export default function ProductShow({ product }: Props) {
                         />
                     </div>
 
-                    {/* Product Info */}
                     <div>
                         <div className="mb-4">
                             <Link

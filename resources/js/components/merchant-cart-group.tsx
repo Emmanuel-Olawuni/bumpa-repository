@@ -21,7 +21,9 @@ export default function MerchantCartGroup({
                     className="mr-3 h-12 w-12 rounded-full"
                 />
                 <div>
-                    <h2 className="text-lg font-bold">{merchant.name}</h2>
+                    <h2 className="text-lg font-bold text-black">
+                        {merchant.name}
+                    </h2>
                     <p className="text-sm text-gray-600">
                         {items.length} item(s)
                     </p>
@@ -35,7 +37,7 @@ export default function MerchantCartGroup({
             <div className="mt-4 flex justify-end border-t pt-4">
                 <div className="text-right">
                     <p className="text-sm text-gray-600">Subtotal</p>
-                    <p className="text-xl font-bold">
+                    <p className="text-xl font-bold text-blue-600">
                         ₦{subtotal.toLocaleString()}
                     </p>
                 </div>

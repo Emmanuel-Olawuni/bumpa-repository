@@ -35,7 +35,9 @@ export default function CartItemRow({ item }: Props) {
             />
 
             <div className="flex-1">
-                <h3 className="font-semibold">{item.product.name}</h3>
+                <h3 className="font-semibold text-black">
+                    {item.product.name}
+                </h3>
                 <p className="text-sm text-gray-600">
                     ₦{item.price_at_add.toLocaleString()}
                 </p>
@@ -46,24 +48,24 @@ export default function CartItemRow({ item }: Props) {
                     onClick={() =>
                         updateQuantity(Math.max(1, data.quantity - 1))
                     }
-                    className="px-2 py-1 hover:bg-gray-100"
+                    className="px-2 py-1 text-black hover:bg-gray-100"
                 >
                     -
                 </button>
-                <span className="px-4">{data.quantity}</span>
+                <span className="px-4 text-black">{data.quantity}</span>
                 <button
                     onClick={() =>
                         updateQuantity(
                             Math.min(item.product.stock, data.quantity + 1),
                         )
                     }
-                    className="px-2 py-1 hover:bg-gray-100"
+                    className="px-2 py-1 text-black hover:bg-gray-100"
                 >
                     +
                 </button>
             </div>
 
-            <div className="font-semibold">
+            <div className="font-semibold text-black">
                 ₦{item.subtotal.toLocaleString()}
             </div>
 

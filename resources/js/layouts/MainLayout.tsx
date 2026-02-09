@@ -50,12 +50,21 @@ export default function MainLayout({ children }: PropsWithChildren) {
                             </Link>
 
                             {auth && auth.user ? (
-                                <Link
-                                    href="/dashboard"
-                                    className="text-gray-700 hover:text-blue-600"
-                                >
-                                    Dashboard
-                                </Link>
+                                <>
+                                    <Link
+                                        href="/dashboard"
+                                        className="text-gray-700 hover:text-blue-600"
+                                    >
+                                        Dashboard
+                                    </Link>
+                                    <Link
+                                        href="/logout"
+                                        method="post"
+                                        className="text-gray-700 hover:text-blue-600"
+                                    >
+                                        Logout
+                                    </Link>
+                                </>
                             ) : (
                                 <>
                                     <Link
@@ -96,6 +105,13 @@ export default function MainLayout({ children }: PropsWithChildren) {
                     <p className="text-center text-gray-600">
                         © 2024 Bumpa Market. Multi-vendor e-commerce platform.
                     </p>
+
+                    <Link
+                        className="mx-auto mt-2 block text-center text-gray-600 underline underline-offset-4 hover:text-blue-600"
+                        href={`https://emmanuelolawuni.com.ng`}
+                    >
+                        Made by Emmanuel Olawuni
+                    </Link>
                 </div>
             </footer>
         </div>

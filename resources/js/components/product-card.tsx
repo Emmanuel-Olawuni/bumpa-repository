@@ -30,7 +30,10 @@ export default function ProductCard({ product }: Props) {
 
                 <div className="flex items-center justify-between">
                     <span className="text-xl font-bold text-blue-600">
-                        ₦{product.price.toLocaleString()}
+                        ₦
+                        {Number.parseFloat(
+                            product.price as any,
+                        ).toLocaleString()}
                     </span>
 
                     <span className="text-sm text-gray-500">
