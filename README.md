@@ -33,27 +33,6 @@ A unified multi-vendor cart system where:
 
 ---
 
-## Live Demo
-
-🔗 **Live App:** [your-deployed-url.railway.app](#)  
-🎥 **Video Walkthrough:** [Watch on Loom (8 min)](#)
-
----
-
-## Screenshots
-
-> *(Add screenshots here after deployment)*
-
-| Product Catalog | Shopping Cart | Checkout |
-|---|---|---|
-| ![Catalog](#) | ![Cart](#) | ![Checkout](#) |
-
-| Order Confirmation | Order History |
-|---|---|
-| ![Confirmation](#) | ![History](#) |
-
----
-
 ## Key Features
 
 ### 🛒 Multi-Vendor Cart
