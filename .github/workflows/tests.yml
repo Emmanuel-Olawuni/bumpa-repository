@@ -1,29 +1,42 @@
-name: tests
+name: Tests
 
 on:
   push:
     branches:
-      - develop
       - main
       - master
-      - workos
+      - develop
   pull_request:
     branches:
-      - develop
       - main
       - master
-      - workos
+      - develop
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: bumpa_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     strategy:
       matrix:
-        php-version: ['8.4', '8.5']
+        php-version: ['8.3', '8.4']
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -31,6 +44,7 @@ jobs:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
           coverage: xdebug
+          extensions: pdo, pdo_mysql, mbstring, xml, ctype, json
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -38,19 +52,35 @@ jobs:
           node-version: '22'
 
       - name: Install Node Dependencies
-        run: npm i
+        run: npm ci
 
-      - name: Install Dependencies
+      - name: Install PHP Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Copy Environment File
         run: cp .env.example .env
 
+      - name: Set Test Environment Variables
+        run: |
+          echo "APP_ENV=testing" >> .env
+          echo "APP_KEY=" >> .env
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE=bumpa_test" >> .env
+          echo "DB_USERNAME=root" >> .env
+          echo "DB_PASSWORD=password" >> .env
+          echo "PAYSTACK_SECRET_KEY=sk_test_fake" >> .env
+          echo "PAYSTACK_PUBLIC_KEY=pk_test_fake" >> .env
+
       - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Build Assets
+      - name: Build Frontend Assets
         run: npm run build
 
-      - name: Tests
-        run: ./vendor/bin/phpunit
+      - name: Run Database Migrations
+        run: php artisan migrate --no-interaction --force
+
+      - name: Run Tests
+        run: php artisan test --no-interaction
