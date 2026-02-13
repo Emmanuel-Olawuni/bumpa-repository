@@ -3,7 +3,7 @@ import { PropsWithChildren } from 'react';
 import { PageProps } from '@/types';
 
 export default function MainLayout({ children }: PropsWithChildren) {
-    const { cart, auth } = usePage<PageProps>().props;
+    const { cart, auth, flash } = usePage<PageProps>().props;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -87,14 +87,14 @@ export default function MainLayout({ children }: PropsWithChildren) {
             </header>
 
             {/* Flash Messages */}
-            {usePage<PageProps>().props.flash?.success && (
+            {flash?.success && (
                 <div className="bg-green-500 px-4 py-3 text-center text-white">
-                    {usePage<PageProps>()?.props?.flash?.success}
+                    {flash.success}
                 </div>
             )}
-            {usePage<PageProps>().props.flash?.error && (
+            {flash?.error && (
                 <div className="bg-red-500 px-4 py-3 text-center text-white">
-                    {usePage<PageProps>()?.props?.flash?.error}
+                    {flash.error}
                 </div>
             )}
 

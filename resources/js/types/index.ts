@@ -34,7 +34,7 @@ export interface Product {
     name: string;
     slug: string;
     description: string;
-    price: number;
+    price: number | string;
     stock: number;
     image: string;
     category: string;
