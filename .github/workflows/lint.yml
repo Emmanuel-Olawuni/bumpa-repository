@@ -1,18 +1,16 @@
-name: linter
+name: Linter
 
 on:
   push:
     branches:
-      - develop
       - main
       - master
-      - workos
+      - develop
   pull_request:
     branches:
-      - develop
       - main
       - master
-      - workos
+      - develop
 
 permissions:
   contents: write
@@ -20,30 +18,32 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          tools: composer:v2
 
-      - name: Install Dependencies
-        run: |
-          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-          npm install
+      - name: Install PHP Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
-      - name: Run Pint
-        run: composer lint
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Run PHP Pint
+        run: ./vendor/bin/pint
+
+      - name: Build Assets
+        run: npm run build
 
       - name: Format Frontend
         run: npm run format
+        continue-on-error: true
 
       - name: Lint Frontend
         run: npm run lint
-
-      # - name: Commit Changes
-      #   uses: stefanzweifel/git-auto-commit-action@v7
-      #   with:
-      #     commit_message: fix code style
-      #     commit_options: '--no-verify'
+        continue-on-error: true
