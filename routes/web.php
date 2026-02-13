@@ -22,8 +22,15 @@ Route::put('/cart/{item}', [CartController::class, 'update'])->name('cart.update
 Route::delete('/cart/{item}', [CartController::class, 'remove'])->name('cart.remove');
 
 
-Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
-Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::middleware('auth')
+    ->prefix('checkout')
+    ->as('checkout.')
+    ->group(function () {
+        Route::get('/', [CheckoutController::class, 'index'])->name('index');
+        Route::post('/', [CheckoutController::class, 'process'])->name('process');
+        Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
+    });
+
+Route::get('/payment/callback', [CheckoutController::class, 'paymentCallback'])->name('payment.callback');
 
 require __DIR__ . '/settings.php';

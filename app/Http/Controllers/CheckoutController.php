@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CheckOutRequest;
 use App\Models\Cart;
 use App\Models\Order;
+use App\Services\OrderService;
+use App\Services\CartService;
+use App\Services\PaymentService;
 use App\Models\OrderGroup;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -16,6 +19,11 @@ use Illuminate\Support\Facades\DB;
 
 class CheckoutController extends Controller
 {
+    public function __construct(
+        protected OrderService $orderService,
+        protected CartService $cartService,
+        protected PaymentService $paymentService
+    ) {}
     public function index(): Response|RedirectResponse
     {
         $cart = Cart::forSession();
@@ -27,7 +35,6 @@ class CheckoutController extends Controller
 
         $itemsByMerchant = $cart->itemsByMerchant();
 
-        // Calculate shipping per merchant (simplified - ₦2000 per merchant)
         $shippingPerMerchant = 2000;
         $totalShipping = $itemsByMerchant->count() * $shippingPerMerchant;
 
@@ -43,84 +50,54 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function process(CheckOutRequest $request): RedirectResponse
+    public function process(Request $request)
     {
-
+        $validated = $request->validate([
+            'customer_name'   => 'required|string|max:255',
+            'customer_email'  => 'required|email',
+            'customer_phone'  => 'required|string',
+            'shipping_address' => 'required|string',
+            'city'            => 'required|string',
+            'state'           => 'required|string',
+        ]);
 
         $cart = Cart::forSession();
 
         if (!$cart || $cart->items()->count() === 0) {
-            return redirect()->route('cart.index')
-                ->with('error', 'Your cart is empty');
+            return redirect()->route('cart.index')->with('error', 'Your cart is empty');
         }
 
         DB::beginTransaction();
 
         try {
-            $itemsByMerchant = $cart->itemsByMerchant();
-            $shippingPerMerchant = 2000;
-            $totalShipping = $itemsByMerchant->count() * $shippingPerMerchant;
-            $subtotal = $cart->total();
-            $total = $subtotal + $totalShipping;
+            $order = $this->orderService->createFromCart($cart, $validated);
 
-            // Create the main order
-            $order = Order::create([
-                'order_number' => Order::generateOrderNumber(),
-                'user_id' => Auth::id(),
-                'total_amount' => $total,
-                'shipping_fee' => $totalShipping,
-                'payment_status' => 'pending',
-                'customer_name' => $request->customer_name,
-                'customer_email' => $request->customer_email,
-                'customer_phone' => $request->customer_phone,
-                'shipping_address' => $request->shipping_address,
-                'city' => $request->city,
-                'state' => $request->state,
-            ]);
+            $order->load('payment');
 
-            // Create order groups (one per merchant)
-            foreach ($itemsByMerchant as $merchantId => $group) {
-                $orderGroup = OrderGroup::create([
-                    'order_id' => $order->id,
-                    'merchant_id' => $group['merchant']->id,
-                    'subtotal' => $group['subtotal'],
-                    'shipping_fee' => $shippingPerMerchant,
-                    'status' => 'pending',
-                ]);
-
-                // Create order items
-                foreach ($group['items'] as $cartItem) {
-                    $orderGroup->items()->create([
-                        'product_id' => $cartItem->product_id,
-                        'quantity' => $cartItem->quantity,
-                        'price' => $cartItem->price_at_add,
-                    ]);
-                }
+            if (!$order->payment) {
+                throw new \RuntimeException('Payment record was not created for order #' . $order->id);
             }
 
-            // Create payment record
-            $paymentReference = 'PAY-' . strtoupper(uniqid());
+            $result = $this->paymentService->initializePayment($order);
 
-            Payment::create([
-                'order_id' => $order->id,
-                'amount' => $total,
-                'gateway' => 'paystack',
-                'reference' => $paymentReference,
-                'status' => 'pending',
-            ]);
+            if ($result['status'] === 'success') {
+                $this->cartService->clearCart($cart);
+                DB::commit();
+                return redirect($result['data']['authorization_url']);
+            }
 
-            DB::commit();
-
-            // Clear the cart
-            $cart->items()->delete();
-            $cart->delete();
-
-            return redirect()->route('checkout.success', $order)
-                ->with('success', 'Order created successfully!');
+            DB::rollBack();
+            return back()->with('error', $result['message'] ?? 'Payment initialization failed');
         } catch (\Exception $e) {
             DB::rollBack();
+            report($e); // logs to Laravel's error log
 
-            return back()->with('error', 'Something went wrong. Please try again.');
+            return back()->with(
+                'error',
+                app()->isLocal()
+                    ? $e->getMessage()
+                    : 'Something went wrong. Please try again.'
+            );
         }
     }
 
@@ -131,5 +108,30 @@ class CheckoutController extends Controller
         return Inertia::render('checkout/success', [
             'order' => $order
         ]);
+    }
+
+    public function paymentCallback(Request $request)
+    {
+        $reference = $request->query('reference');
+
+        if (!$reference) {
+            return redirect()->route('home')->with('error', 'Invalid payment callback');
+        }
+
+        $payment = Payment::where('reference', $reference)->first();
+
+        if (!$payment) {
+            return redirect()->route('home')->with('error', 'Payment record not found');
+        }
+
+        $result = $this->paymentService->verifyPayment($reference);
+
+        if ($result['status'] === 'success') {
+            $this->paymentService->processSuccessfulPayment($payment, $result['data']);
+            return redirect()->route('checkout.success', ['order' => $payment->order_id])
+                ->with('success', 'Payment successful! Your order is being processed.');
+        }
+
+        return redirect()->route('home')->with('error', 'Payment verification failed');
     }
 }
