@@ -61,7 +61,6 @@ class Cart extends Model
     {
         $sessionId = session()->getId();
 
-        // If user is logged in, find their cart first
         if (auth()->check()) {
             return static::where('user_id', auth()->id())
                 ->orWhere('session_id', $sessionId)
@@ -69,7 +68,6 @@ class Cart extends Model
                 ->first();
         }
 
-        // Guest user - find by session only
         return static::where('session_id', $sessionId)
             ->first();
     }
