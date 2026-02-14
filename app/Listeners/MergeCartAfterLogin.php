@@ -9,24 +9,26 @@ class MergeCartAfterLogin
 {
     public function handle(Login $event): void
     {
-        $sessionId = session()->getId();
-
-        $guestCart = Cart::where('session_id', $sessionId)
-            ->whereNull('user_id')
+        $user = $event->user;
+        $guestCart = Cart::whereNull('user_id')
+            ->whereNotNull('session_id')
             ->with('items')
+            ->latest()
             ->first();
 
         if (!$guestCart || $guestCart->items->isEmpty()) {
+            $userCart = Cart::firstOrCreate(
+                ['user_id' => $user->id],
+                ['session_id' => session()->getId()]
+            );
+            $userCart->update(['session_id' => session()->getId()]);
             return;
         }
-
         $userCart = Cart::firstOrCreate(
-            ['user_id' => $event->user->id],
-            ['session_id' => $sessionId]
+            ['user_id' => $user->id],
+            ['session_id' => session()->getId()]
         );
-
         foreach ($guestCart->items as $guestItem) {
-
             $existingItem = $userCart->items()
                 ->where('product_id', $guestItem->product_id)
                 ->first();
@@ -45,7 +47,6 @@ class MergeCartAfterLogin
         }
 
         $guestCart->delete();
-
-        $userCart->update(['session_id' => $sessionId]);
+        $userCart->update(['session_id' => session()->getId()]);
     }
 }

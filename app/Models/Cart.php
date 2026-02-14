@@ -25,9 +25,6 @@ class Cart extends Model
         return $this->hasMany(CartItem::class);
     }
 
-    /**
-     * Get cart items grouped by merchant
-     */
     public function itemsByMerchant(): Collection
     {
         return $this->items()
@@ -37,49 +34,58 @@ class Cart extends Model
             ->map(function ($items, $merchantId) {
                 return [
                     'merchant' => $items->first()->product->merchant,
-                    'items' => $items,
+                    'items'    => $items,
                     'subtotal' => $items->sum('subtotal')
                 ];
             });
     }
 
-    /**
-     * Calculate cart total
-     */
     public function total(): float
     {
         return $this->items->sum('subtotal');
     }
 
     /**
-     * Get or create cart for current session
-     */
-    /**
-     * Get cart for current session OR logged in user
+     * Get cart for this request.
+     * 
      */
     public static function forSession(): ?Cart
     {
-        $sessionId = session()->getId();
-
-        if (auth()->check()) {
-            return static::where('user_id', auth()->id())
-                ->orWhere('session_id', $sessionId)
+        if (Auth::check()) {
+            return static::where('user_id', Auth::id())
                 ->with('items')
                 ->first();
         }
 
-        return static::where('session_id', $sessionId)
+        // Guest: find by session
+        return static::where('session_id', session()->getId())
+            ->whereNull('user_id')
+            ->with('items')
             ->first();
     }
 
     /**
-     * Create cart for current session
+     * Get or create cart for this request.
      */
     public static function createForSession(): Cart
     {
+        if (Auth::check()) {
+            $cart = static::firstOrCreate(
+                ['user_id' => Auth::id()],
+                ['session_id' => session()->getId()]
+            );
+
+            // Keep session_id fresh
+            if ($cart->session_id !== session()->getId()) {
+                $cart->update(['session_id' => session()->getId()]);
+            }
+
+            return $cart;
+        }
+
         return static::firstOrCreate(
             ['session_id' => session()->getId()],
-            ['user_id' => auth()->id()]
+            ['user_id' => null]
         );
     }
 }
