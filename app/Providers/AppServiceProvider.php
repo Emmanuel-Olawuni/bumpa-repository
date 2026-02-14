@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Contracts\PaymentGatewayInterface;
+use App\Listeners\MergeCartAfterLogin;
 use App\Services\Gateways\PaystackGateway;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +29,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        \Illuminate\Support\Facades\Event::listen(
+            Login::class,
+            MergeCartAfterLogin::class
+        );
     }
 
     /**

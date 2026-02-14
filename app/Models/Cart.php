@@ -54,23 +54,34 @@ class Cart extends Model
     /**
      * Get or create cart for current session
      */
+    /**
+     * Get cart for current session OR logged in user
+     */
     public static function forSession(): ?Cart
     {
         $sessionId = session()->getId();
 
+        // If user is logged in, find their cart first
+        if (auth()->check()) {
+            return static::where('user_id', auth()->id())
+                ->orWhere('session_id', $sessionId)
+                ->with('items')
+                ->first();
+        }
+
+        // Guest user - find by session only
         return static::where('session_id', $sessionId)
             ->first();
     }
 
     /**
-     * Create cart for current session if doesn't exist
+     * Create cart for current session
      */
     public static function createForSession(): Cart
     {
-        return static::firstOrCreate([
-            'session_id' => session()->getId()
-        ], [
-            'user_id' => Auth::id()
-        ]);
+        return static::firstOrCreate(
+            ['session_id' => session()->getId()],
+            ['user_id' => auth()->id()]
+        );
     }
 }
