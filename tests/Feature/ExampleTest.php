@@ -47,7 +47,7 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/checkout');
 
-        $response->assertRedirect('/cart');
+        $response->assertRedirect('/login');
     }
 
     /**
