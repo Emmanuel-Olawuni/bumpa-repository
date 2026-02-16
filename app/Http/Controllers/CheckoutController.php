@@ -81,17 +81,17 @@ class CheckoutController extends Controller
             $result = $this->paymentService->initializePayment($order);
 
             if ($result['status'] === 'success') {
+
                 $this->cartService->clearCart($cart);
                 DB::commit();
-                return redirect($result['data']['authorization_url']);
+                return Inertia::location($result['data']['authorization_url']);
             }
 
             DB::rollBack();
             return back()->with('error', $result['message'] ?? 'Payment initialization failed');
         } catch (\Exception $e) {
             DB::rollBack();
-            report($e); // logs to Laravel's error log
-
+            report($e);
             return back()->with(
                 'error',
                 app()->isLocal()

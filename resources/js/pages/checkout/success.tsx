@@ -91,7 +91,10 @@ export default function CheckoutSuccess({ order }: Props) {
                                     Total Amount
                                 </p>
                                 <p className="font-semibold text-black">
-                                    ₦{order.total_amount.toLocaleString()}
+                                    ₦
+                                    {Number(
+                                        order.total_amount,
+                                    ).toLocaleString()}
                                 </p>
                             </div>
                         </div>

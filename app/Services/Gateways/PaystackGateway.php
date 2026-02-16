@@ -17,30 +17,36 @@ class PaystackGateway implements PaymentGatewayInterface
 
     public function initializePayment(Order $order): array
     {
-        /** @var \Illuminate\Http\Client\Response $response */
-
         $response = Http::withToken($this->secretKey)
+            ->withOptions([
+                'verify' => app()->isProduction(),
+            ])
             ->post('https://api.paystack.co/transaction/initialize', [
-                'email' => $order->customer_email,
-                'amount' => $order->total_amount * 100,
-                'reference' => $order->payment->reference,
+                'email'        => $order->customer_email,
+                'amount'       => (int)($order->total_amount * 100),
+                'reference'    => $order->payment->reference,
                 'callback_url' => route('payment.callback'),
             ]);
-
-
-
+        /**
+         * @var \Illuminate\Http\Client\Response $response
+         */
 
         return $response->successful()
             ? ['status' => 'success', 'data' => $response->json()['data']]
-            : ['status' => 'error', 'message' => 'Initialization failed'];
+            : ['status' => 'error', 'message' => $response->json()['message'] ?? 'Initialization failed'];
     }
 
     public function verifyPayment(string $reference): array
     {
-        /** @var \Illuminate\Http\Client\Response $response */
-
         $response = Http::withToken($this->secretKey)
+            ->withOptions([
+                'verify' => app()->isProduction(),
+            ])
             ->get("https://api.paystack.co/transaction/verify/{$reference}");
+
+        /**
+         * @var \Illuminate\Http\Client\Response $response
+         */
 
         return $response->successful()
             ? ['status' => 'success', 'data' => $response->json()['data']]

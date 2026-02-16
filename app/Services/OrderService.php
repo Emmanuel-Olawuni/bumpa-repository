@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderGroup;
-use App\Models\Payment; // add this
 use Illuminate\Support\Facades\Auth;
 
 class OrderService
@@ -31,9 +30,8 @@ class OrderService
             $this->createOrderGroup($order, $group, $shippingPerMerchant);
         }
 
-        // Create the payment record so PaystackGateway can access its reference
         $order->payment()->create([
-            'reference' => 'PAY-' . strtoupper(uniqid()),
+            'reference' => 'BUMPA-' . strtoupper(uniqid()),
             'amount'    => $total,
             'status'    => 'pending',
         ]);
